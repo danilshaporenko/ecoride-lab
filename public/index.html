@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b6638">
+  <title>EcoRide — прокат самокатів і електробайків</title>
+  <meta name="description" content="EcoRide: оберіть самокат на мапі, забронюйте, розблокуйте та їдьте. Демо-версія мобільного застосунку.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Увесь «застосунок» — один екран телефона -->
+  <div class="app">
+
+    <h1 class="visually-hidden">EcoRide — прокат електросамокатів і електробайків</h1>
+
+    <!--
+      СТАН ЗАСТОСУНКУ: обраний транспорт.
+      Три приховані radio-кнопки. Коли користувач торкається маркера
+      чи рядка зі списку (це <label for="...">), потрібна кнопка стає :checked,
+      а CSS показує дані саме цього транспорту на всіх екранах.
+    -->
+    <input class="state" type="radio" name="vehicle" id="v-2048" checked aria-label="Самокат №2048">
+    <input class="state" type="radio" name="vehicle" id="v-6769" aria-label="Самокат №6769">
+    <input class="state" type="radio" name="vehicle" id="v-1912" aria-label="Електробайк №1912">
+
+    <!--
+      ЕКРАНИ. Кожен екран — <section> з id.
+      Видимий той, на який веде посилання (:target). Головний екран «Мапа»
+      стоїть ОСТАННІМ і показується, коли жоден інший екран не вибраний.
+    -->
+    <!-- ЛР4: динамічний банер активного стану (бронювання / поїздка), керується JS -->
+    <a class="banner" id="session-banner" href="#booking" hidden></a>
+
+    <main class="screens">
+
+      <!-- ===== ВИБІР САМОКАТА ===== -->
+      <section class="screen" id="choose" aria-labelledby="t-choose">
+        <header class="appbar">
+          <span class="appbar__logo" aria-hidden="true">🍃</span>
+          <h2 class="appbar__title" id="t-choose">Вибір самоката</h2>
+          <a class="icon-btn" href="#help" aria-label="Допомога">?</a>
+        </header>
+
+        <div class="map" role="group" aria-label="Мапа: можна обрати інший транспорт">
+          <span class="chip chip--warning map__gps">GPS · демо</span>
+          <span class="map__you"></span>
+          <span class="map__park">Парк Шевченка</span>
+          <label class="marker marker--2048" data-v="2048" for="v-2048"><span aria-hidden="true">🛴</span><span class="visually-hidden">Самокат №2048</span></label>
+          <label class="marker marker--6769" data-v="6769" for="v-6769"><span aria-hidden="true">🛴</span><span class="visually-hidden">Самокат №6769</span></label>
+          <label class="marker marker--1912 marker--bike" data-v="1912" for="v-1912"><span aria-hidden="true">🚲</span><span class="visually-hidden">Електробайк №1912</span></label>
+        </div>
+
+        <div class="sheet">
+          <div class="vehicle vehicle--plain">
+            <span class="vehicle__icon" aria-hidden="true"><span class="v v2048">🛴</span><span class="v v6769">🛴</span><span class="v v1912">🚲</span></span>
+            <span class="vehicle__info">
+              <h3 class="vehicle__name"><span class="v v2048">Самокат №2048</span><span class="v v6769">Самокат №6769</span><span class="v v1912">Електробайк №1912</span></h3>
+              <span class="vehicle__meta"><span class="v v2048">120 м</span><span class="v v6769">120 м</span><span class="v v1912">240 м</span> · парк Шевченка</span>
+            </span>
+            <span class="vehicle__charge"><span class="v v2048">82%</span><span class="v v6769">69%</span><span class="v v1912">67%</span></span>
+          </div>
+
+          <dl class="stats">
+            <div class="stat"><dt>Запас ходу</dt><dd><span class="v v2048">22 км</span><span class="v v6769">18 км</span><span class="v v1912">22 км</span></dd></div>
+            <div class="stat"><dt>Тариф</dt><dd><span class="v v2048">1,20 ₴/хв</span><span class="v v6769">1,20 ₴/хв</span><span class="v v1912">1,50 ₴/хв</span></dd></div>
+          </dl>
+
+          <p class="hint">Забронюйте на 10 хвилин і дійдіть до транспорту.</p>
+          <a class="btn btn--primary btn--block" href="#booking">Забронювати на 10 хв</a>
+        </div>
+      </section>
+
+      <!-- ===== БРОНЮВАННЯ ===== -->
+      <section class="screen" id="booking" aria-labelledby="t-booking">
+        <header class="appbar">
+          <span class="appbar__logo" aria-hidden="true">🍃</span>
+          <h2 class="appbar__title" id="t-booking">Бронювання</h2>
+          <a class="icon-btn" href="#help" aria-label="Допомога">?</a>
+        </header>
+
+        <div class="map map--plain" role="img" aria-label="Мапа міста під час бронювання">
+          <span class="chip chip--warning map__gps">GPS · демо</span>
+          <span class="map__you"></span>
+        </div>
+
+        <div class="sheet">
+          <div class="steps" aria-hidden="true"><span class="done"></span><span></span><span></span><span></span></div>
+
+          <div class="row">
+            <span class="chip chip--success">✓ Заброньовано</span>
+            <p class="timer" id="booking-timer" aria-live="off">10:00</p>
+          </div>
+
+          <div class="vehicle vehicle--plain">
+            <span class="vehicle__icon" aria-hidden="true"><span class="v v2048">🛴</span><span class="v v6769">🛴</span><span class="v v1912">🚲</span></span>
+            <span class="vehicle__info">
+              <h3 class="vehicle__name"><span class="v v2048">Самокат №2048</span><span class="v v6769">Самокат №6769</span><span class="v v1912">Електробайк №1912</span></h3>
+              <span class="vehicle__meta"><span class="v v2048">120 м</span><span class="v v6769">120 м</span><span class="v v1912">240 м</span> · парк Шевченка</span>
+            </span>
+            <span class="vehicle__charge"><span class="v v2048">82%</span><span class="v v6769">69%</span><span class="v v1912">67%</span></span>
+          </div>
+
+          <dl class="stats">
+            <div class="stat"><dt>Пішки</dt><dd><span class="v v2048">2 хв · 120 м</span><span class="v v6769">2 хв · 120 м</span><span class="v v1912">4 хв · 240 м</span></dd></div>
+            <div class="stat"><dt>Оплата</dt><dd>•••• 4242</dd></div>
+          </dl>
+
+          <p class="notice">Демо: оплата, GPS і розблокування не виконуються насправді.</p>
+          <a class="btn btn--primary btn--block" href="#unlock">Я біля транспорту</a>
+          <a class="btn btn--outline btn--block" href="#map" data-action="cancel-booking">Скасувати бронювання</a>
+        </div>
+      </section>
+
+      <!-- ===== РОЗБЛОКУВАННЯ ===== -->
+      <section class="screen" id="unlock" aria-labelledby="t-unlock">
+        <header class="appbar">
+          <span class="appbar__logo" aria-hidden="true">🍃</span>
+          <h2 class="appbar__title" id="t-unlock">Розблокування</h2>
+          <a class="icon-btn" href="#help" aria-label="Допомога">?</a>
+        </header>
+
+        <div class="map map--plain" role="img" aria-label="Мапа міста під час розблокування">
+          <span class="chip chip--warning map__gps">GPS · демо</span>
+          <span class="map__you"></span>
+        </div>
+
+        <div class="sheet sheet--center">
+          <div class="steps" aria-hidden="true"><span class="done"></span><span class="done"></span><span></span><span></span></div>
+          <span class="big-icon" aria-hidden="true">🔓</span>
+          <h3 class="sheet__title">Розблоковуємо №<span class="v v2048">2048</span><span class="v v6769">6769</span><span class="v v1912">1912</span></h3>
+          <p class="sheet__subtitle">Зачекайте кілька секунд. Не відштовхуйтеся, доки не почуєте сигнал.</p>
+
+          <!-- Смужка заповнюється CSS-анімацією, потім з'являється кнопка -->
+          <div class="bar" aria-hidden="true"><span></span></div>
+
+          <p class="notice">Демо: оплата, GPS і розблокування не виконуються насправді.</p>
+          <a class="btn btn--primary btn--block unlock__next" href="#ride">Почати поїздку</a>
+          <a class="link-strong" href="#help">Не розблоковується? Відкрити допомогу</a>
+        </div>
+      </section>
+
+      <!-- ===== АКТИВНА ПОЇЗДКА ===== -->
+      <section class="screen" id="ride" aria-labelledby="t-ride">
+        <header class="appbar">
+          <span class="appbar__logo" aria-hidden="true">🍃</span>
+          <h2 class="appbar__title" id="t-ride">Активна поїздка</h2>
+          <a class="icon-btn" href="#help" aria-label="Допомога">?</a>
+        </header>
+
+        <div class="map map--plain" role="img" aria-label="Мапа міста під час поїздки">
+          <span class="chip chip--warning map__gps">GPS · демо</span>
+          <span class="map__you"></span>
+        </div>
+
+        <div class="sheet">
+          <div class="steps" aria-hidden="true"><span class="done"></span><span class="done"></span><span class="done"></span><span></span></div>
+
+          <div class="row">
+            <span class="chip chip--success">Поїздка триває</span>
+            <p class="timer" id="ride-timer">00:00</p>
+          </div>
+
+          <dl class="stats stats--three">
+            <div class="stat"><dt>Відстань</dt><dd id="ride-distance">0,0 км</dd></div>
+            <div class="stat"><dt>Вартість</dt><dd id="ride-cost">0,00 ₴</dd></div>
+            <div class="stat"><dt>Заряд</dt><dd id="ride-charge">—</dd></div>
+          </dl>
+
+          <p class="notice">Паркуйте лише у зеленій зоні. GPS працює в демо-режимі.</p>
+          <a class="btn btn--primary btn--block" href="#summary" data-action="finish-ride">Завершити поїздку</a>
+        </div>
+      </section>
+
+      <!-- ===== ПІДСУМОК І ОЦІНКА ===== -->
+      <section class="screen screen--page" id="summary" aria-labelledby="t-summary">
+        <header class="appbar">
+          <span class="appbar__logo" aria-hidden="true">🍃</span>
+          <h2 class="appbar__title" id="t-summary">Підсумок і оцінка</h2>
+          <a class="icon-btn" href="#help" aria-label="Допомога">?</a>
+        </header>
+
+        <div class="page">
+          <div class="card card--center">
+            <span class="big-icon" aria-hidden="true">✓</span>
+            <h3 class="card__title">Поїздку завершено</h3>
+            <p class="sheet__subtitle"><span id="sum-vehicle">Самокат №2048</span> · <span id="sum-when">сьогодні, 09:53</span></p>
+
+            <dl class="stats stats--three">
+              <div class="stat"><dt>Час</dt><dd id="sum-time">—</dd></div>
+              <div class="stat"><dt>Відстань</dt><dd id="sum-distance">—</dd></div>
+              <div class="stat"><dt>Разом</dt><dd id="sum-total">—</dd></div>
+            </dl>
+
+            <p class="notice">Демо: оплата, GPS і розблокування не виконуються насправді.</p>
+
+            <!-- Оцінка зірками: radio-кнопки (порядок 5→1, відображення зворотне) -->
+            <fieldset class="rating">
+              <legend class="rating__title">Як вам поїздка?</legend>
+              <div class="stars">
+                <input class="visually-hidden" type="radio" name="rate" id="star-5"><label for="star-5"><span class="visually-hidden">5 з 5</span></label>
+                <input class="visually-hidden" type="radio" name="rate" id="star-4" checked><label for="star-4"><span class="visually-hidden">4 з 5</span></label>
+                <input class="visually-hidden" type="radio" name="rate" id="star-3"><label for="star-3"><span class="visually-hidden">3 з 5</span></label>
+                <input class="visually-hidden" type="radio" name="rate" id="star-2"><label for="star-2"><span class="visually-hidden">2 з 5</span></label>
+                <input class="visually-hidden" type="radio" name="rate" id="star-1"><label for="star-1"><span class="visually-hidden">1 з 5</span></label>
+              </div>
+              <p class="rating__text">
+                <span class="rt rt5">Чудово · 5 з 5</span>
+                <span class="rt rt4">Добре · 4 з 5</span>
+                <span class="rt rt3">Нормально · 3 з 5</span>
+                <span class="rt rt2">Так собі · 2 з 5</span>
+                <span class="rt rt1">Погано · 1 з 5</span>
+              </p>
+            </fieldset>
+
+            <a class="btn btn--primary btn--block" href="#history" data-action="done-rating">Готово</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== АБОНЕМЕНТИ ===== -->
+      <section class="screen screen--page" id="plans" aria-labelledby="t-plans">
+        <header class="appbar">
+          <span class="appbar__logo" aria-hidden="true">🍃</span>
+          <h2 class="appbar__title" id="t-plans">Абонементи</h2>
+          <a class="icon-btn" href="#help" aria-label="Допомога">?</a>
+        </header>
+
+        <div class="page">
+          <p class="eyebrow">Економте на поїздках</p>
+          <h3 class="page__title">Абонементи</h3>
+          <p class="page__text">Оберіть пакет для щоденних маршрутів містом.</p>
+
+          <p class="current-plan">
+            <span class="current-plan__label">Поточний план</span>
+            <span class="current-plan__value" id="current-plan">Оплата за хвилину · 1,20 ₴</span>
+          </p>
+
+          <!-- Картки-тарифи вибираються торканням (radio + label) -->
+          <div class="plans">
+            <input class="visually-hidden" type="radio" name="plan" id="plan-day" data-name="Еко День" data-price="149">
+            <label class="plan" for="plan-day">
+              <span class="plan__head"><span class="plan__name">Еко День</span><span class="tag">На день</span></span>
+              <span class="plan__price">149 ₴</span>
+              <span class="plan__desc">Безлімітні розблокування · 60 хв</span>
+            </label>
+
+            <input class="visually-hidden" type="radio" name="plan" id="plan-30" data-name="30 хвилин" data-price="89" checked>
+            <label class="plan" for="plan-30">
+              <span class="plan__head"><span class="plan__name">30 хвилин</span><span class="tag tag--green">Популярний</span></span>
+              <span class="plan__price">89 ₴</span>
+              <span class="plan__desc">30 хв поїздок · діє 7 днів</span>
+            </label>
+
+            <input class="visually-hidden" type="radio" name="plan" id="plan-month" data-name="Еко Місяць" data-price="349">
+            <label class="plan" for="plan-month">
+              <span class="plan__head"><span class="plan__name">Еко Місяць</span><span class="tag">Вигідно</span></span>
+              <span class="plan__price">349 ₴</span>
+              <span class="plan__desc">Безлімітні розблокування · 240 хв</span>
+            </label>
+          </div>
+
+          <button class="btn btn--primary btn--block" type="button" data-action="activate-plan">Підключити обраний абонемент</button>
+          <p class="notice">Демо: оплата, GPS і розблокування не виконуються насправді.</p>
+        </div>
+      </section>
+
+      <!-- ===== ІСТОРІЯ ПОЇЗДОК ===== -->
+      <section class="screen screen--page" id="history" aria-labelledby="t-history">
+        <header class="appbar">
+          <span class="appbar__logo" aria-hidden="true">🍃</span>
+          <h2 class="appbar__title" id="t-history">Історія поїздок</h2>
+          <a class="icon-btn" href="#help" aria-label="Допомога">?</a>
+        </header>
+
+        <div class="page">
+          <p class="eyebrow">Мої поїздки</p>
+          <h3 class="page__title">Історія поїздок</h3>
+          <p class="page__text">Усі завершені поїздки та електронні чеки.</p>
+
+          <form class="filters" id="filters" action="#history">
+            <div class="field">
+              <label class="visually-hidden" for="filter-type">Тип поїздок</label>
+              <select id="filter-type" name="type">
+                <option value="all">Усі поїздки</option>
+                <option value="scooter">Самокати</option>
+                <option value="bike">Електробайки</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="visually-hidden" for="filter-period">Період</label>
+              <select id="filter-period" name="period">
+                <option value="30">Останні 30 днів</option>
+                <option value="7">Останні 7 днів</option>
+                <option value="all">Увесь час</option>
+              </select>
+            </div>
+          </form>
+
+          <p class="filters__count" id="trips-count" aria-live="polite"></p>
+          <ul class="trips" id="trips">
+            <li class="trip" data-kind="scooter" data-days="0" data-route="Золоті ворота → Арсенальна" data-date="Сьогодні, 09:53" data-duration="8 хв 16 с" data-distance="2,4 км" data-vehicle="Самокат №2048" data-tariff="1,20 ₴/хв" data-sum="48,20 ₴" data-payment="Visa •••• 4242">
+              <span class="trip__icon" aria-hidden="true">⇢</span>
+              <div class="trip__info">
+                <p class="trip__date">Сьогодні, 09:53</p>
+                <h4 class="trip__route">Золоті ворота → Арсенальна</h4>
+                <p class="trip__meta">8 хв · 2,4 км · Самокат №2048</p>
+              </div>
+              <div class="trip__price">
+                <p class="trip__sum">48,20 ₴</p>
+                <a href="#receipt">Чек</a>
+              </div>
+            </li>
+            <li class="trip" data-kind="bike" data-days="12" data-route="Поділ → Контрактова площа" data-date="18 вересня, 08:14" data-duration="19 хв" data-distance="5,8 км" data-vehicle="Електробайк №1912" data-tariff="1,50 ₴/хв" data-sum="129,00 ₴" data-payment="Visa •••• 4242">
+              <span class="trip__icon" aria-hidden="true">⇢</span>
+              <div class="trip__info">
+                <p class="trip__date">18 вересня, 08:14</p>
+                <h4 class="trip__route">Поділ → Контрактова площа</h4>
+                <p class="trip__meta">19 хв · 5,8 км · Електробайк №1912</p>
+              </div>
+              <div class="trip__price">
+                <p class="trip__sum">129,00 ₴</p>
+                <a href="#receipt">Чек</a>
+              </div>
+            </li>
+            <li class="trip" data-kind="scooter" data-days="16" data-route="Олімпійська → Палац спорту" data-date="14 вересня, 19:05" data-duration="11 хв" data-distance="3,1 км" data-vehicle="Самокат №2371" data-tariff="1,20 ₴/хв" data-sum="61,50 ₴" data-payment="Visa •••• 4242">
+              <span class="trip__icon" aria-hidden="true">⇢</span>
+              <div class="trip__info">
+                <p class="trip__date">14 вересня, 19:05</p>
+                <h4 class="trip__route">Олімпійська → Палац спорту</h4>
+                <p class="trip__meta">11 хв · 3,1 км · Самокат №2371</p>
+              </div>
+              <div class="trip__price">
+                <p class="trip__sum">61,50 ₴</p>
+                <a href="#receipt">Чек</a>
+              </div>
+            </li>
+            <li class="trip" data-kind="scooter" data-days="95" data-route="Лук’янівська → Центральний залізничний вокзал" data-date="3 липня, 18:40" data-duration="14 хв" data-distance="3,9 км" data-vehicle="Самокат №3305" data-tariff="1,20 ₴/хв" data-sum="76,80 ₴" data-payment="Visa •••• 4242">
+              <span class="trip__icon" aria-hidden="true">⇢</span>
+              <div class="trip__info">
+                <p class="trip__date">3 липня, 18:40</p>
+                <h4 class="trip__route">Лук’янівська → Центральний залізничний вокзал</h4>
+                <p class="trip__meta">14 хв · 3,9 км · Самокат №3305</p>
+              </div>
+              <div class="trip__price">
+                <p class="trip__sum">76,80 ₴</p>
+                <a href="#receipt">Чек</a>
+              </div>
+            </li>
+          </ul>
+          <p class="empty" id="trips-empty" hidden>За цими умовами поїздок не знайдено. Змініть фільтри.</p>
+        </div>
+      </section>
+
+      <!-- ===== ЕЛЕКТРОННИЙ ЧЕК ===== -->
+      <section class="screen screen--page" id="receipt" aria-labelledby="t-receipt">
+        <header class="appbar">
+          <a class="icon-btn" href="#history" aria-label="Назад до історії">‹</a>
+          <h2 class="appbar__title" id="t-receipt">Електронний чек</h2>
+        </header>
+
+        <div class="page">
+          <div class="card">
+            <h3 class="card__title" id="receipt-route">Золоті ворота → Арсенальна</h3>
+            <dl class="receipt">
+              <div><dt>Дата</dt><dd data-r="date">Сьогодні, 09:53</dd></div>
+              <div><dt>Транспорт</dt><dd data-r="vehicle">Самокат №2048</dd></div>
+              <div><dt>Час</dt><dd data-r="duration">8 хв 16 с</dd></div>
+              <div><dt>Відстань</dt><dd data-r="distance">2,4 км</dd></div>
+              <div><dt>Тариф</dt><dd data-r="tariff">1,20 ₴/хв</dd></div>
+              <div><dt>Оплата</dt><dd data-r="payment">Visa •••• 4242</dd></div>
+              <div class="receipt__total"><dt>Разом</dt><dd data-r="sum">48,20 ₴</dd></div>
+            </dl>
+            <p class="notice">Демо: це навчальний чек, реальної оплати не було.</p>
+            <a class="btn btn--outline btn--block" href="#history">До історії</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ПРОФІЛЬ І ГАМАНЕЦЬ ===== -->
+      <section class="screen screen--page" id="profile" aria-labelledby="t-profile">
+        <header class="appbar">
+          <span class="appbar__logo" aria-hidden="true">🍃</span>
+          <h2 class="appbar__title" id="t-profile">Профіль і гаманець</h2>
+          <a class="icon-btn" href="#help" aria-label="Допомога">?</a>
+        </header>
+
+        <div class="page">
+          <div class="user">
+            <span class="user__avatar" aria-hidden="true"></span>
+            <div class="user__info">
+              <h3 class="user__name">Данило Шапоренко</h3>
+              <p class="user__phone">+380 67 204 48 19</p>
+            </div>
+            <span class="chip chip--success">✓ Підтверджено</span>
+          </div>
+
+          <section class="wallet" aria-labelledby="wallet-title">
+            <div class="wallet__top">
+              <h3 class="wallet__title" id="wallet-title">Гаманець EcoRide</h3>
+              <span class="chip chip--warning">Демо</span>
+            </div>
+            <p class="wallet__balance" id="wallet-balance" aria-live="polite">184,20 ₴</p>
+            <div class="wallet__actions">
+              <button class="btn btn--glass" type="button" data-action="open-topup">+ Поповнити</button>
+              <a class="btn btn--glass" href="#history">Операції</a>
+            </div>
+          </section>
+
+          <ul class="settings">
+            <li>
+              <button class="settings__item" type="button" data-setting="payment">
+                <span class="settings__icon" aria-hidden="true">💳</span>
+                <span class="settings__text">
+                  <span class="settings__name">Спосіб оплати</span>
+                  <span class="settings__desc">Visa •••• 4242 · демонстраційна</span>
+                </span>
+                <span class="settings__arrow" aria-hidden="true">›</span>
+              </button>
+            </li>
+            <li>
+              <button class="settings__item" type="button" data-setting="notifications" aria-pressed="true">
+                <span class="settings__icon" aria-hidden="true">🔔</span>
+                <span class="settings__text">
+                  <span class="settings__name">Сповіщення</span>
+                  <span class="settings__desc" id="notif-desc">Увімкнено · бронювання, поїздки та чеки</span>
+                </span>
+                <span class="settings__arrow" aria-hidden="true">›</span>
+              </button>
+            </li>
+            <li>
+              <button class="settings__item" type="button" data-setting="security">
+                <span class="settings__icon" aria-hidden="true">🛡️</span>
+                <span class="settings__text">
+                  <span class="settings__name">Безпека і документи</span>
+                  <span class="settings__desc">Особу підтверджено</span>
+                </span>
+                <span class="settings__arrow" aria-hidden="true">›</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===== ДОПОМОГА ===== -->
+      <section class="screen screen--page" id="help" aria-labelledby="t-help">
+        <header class="appbar">
+          <a class="icon-btn" href="#map" aria-label="Назад до мапи">‹</a>
+          <h2 class="appbar__title" id="t-help">Допомога</h2>
+        </header>
+
+        <div class="page">
+          <!-- <details> розкривається без JavaScript -->
+          <details class="faq">
+            <summary>Транспорт не розблоковується</summary>
+            <p>Перевірте, що ви стоїте поруч, і зачекайте кілька секунд до звукового сигналу. Якщо не допомогло — скасуйте бронювання й оберіть інший самокат.</p>
+          </details>
+          <details class="faq">
+            <summary>Де можна паркуватися?</summary>
+            <p>Лише у зеленій зоні на мапі. Поза нею поїздку завершити не вдасться.</p>
+          </details>
+          <details class="faq">
+            <summary>Скільки діє бронювання?</summary>
+            <p>10 хвилин. Після цього транспорт знову стає доступним для інших.</p>
+          </details>
+
+          <!-- ЛР4: форма звернення з клієнтською валідацією -->
+          <section class="card" aria-labelledby="support-title">
+            <h3 class="card__title" id="support-title">Написати в підтримку</h3>
+            <form class="form" id="support-form" novalidate>
+              <div class="form__field">
+                <label for="sup-name">Ім’я</label>
+                <input id="sup-name" name="name" type="text" autocomplete="name" aria-describedby="sup-name-err">
+                <p class="form__error" id="sup-name-err"></p>
+              </div>
+              <div class="form__field">
+                <label for="sup-email">Електронна пошта</label>
+                <input id="sup-email" name="email" type="email" autocomplete="email" inputmode="email" aria-describedby="sup-email-err">
+                <p class="form__error" id="sup-email-err"></p>
+              </div>
+              <div class="form__field">
+                <label for="sup-topic">Тема звернення</label>
+                <select id="sup-topic" name="topic" aria-describedby="sup-topic-err">
+                  <option value="">Оберіть тему…</option>
+                  <option value="unlock">Не розблоковується транспорт</option>
+                  <option value="payment">Оплата та гаманець</option>
+                  <option value="parking">Паркування</option>
+                  <option value="other">Інше</option>
+                </select>
+                <p class="form__error" id="sup-topic-err"></p>
+              </div>
+              <div class="form__field">
+                <label for="sup-msg">Повідомлення</label>
+                <textarea id="sup-msg" name="message" rows="4" maxlength="500" aria-describedby="sup-msg-err sup-msg-count"></textarea>
+                <p class="form__counter" id="sup-msg-count">0 / 500</p>
+                <p class="form__error" id="sup-msg-err"></p>
+              </div>
+              <div class="form__field form__field--check">
+                <label class="check"><input id="sup-consent" name="consent" type="checkbox" aria-describedby="sup-consent-err"> Погоджуюсь на обробку моїх даних</label>
+                <p class="form__error" id="sup-consent-err"></p>
+              </div>
+              <p class="form__summary" id="sup-summary" role="alert" hidden></p>
+              <button class="btn btn--primary btn--block" type="submit">Надіслати</button>
+            </form>
+            <p class="form__success" id="sup-success" role="status" hidden></p>
+          </section>
+
+          <p class="notice">Підтримка: <a href="mailto:support@ecoride.example">support@ecoride.example</a></p>
+          <a class="btn btn--outline btn--block" href="#map">Повернутися до мапи</a>
+        </div>
+      </section>
+
+      <!-- ===== МАПА (головний екран, показується за замовчуванням) ===== -->
+      <section class="screen screen--home" id="map" aria-labelledby="t-map">
+        <header class="appbar">
+          <span class="appbar__logo" aria-hidden="true">🍃</span>
+          <h2 class="appbar__title" id="t-map">Мапа</h2>
+          <a class="icon-btn" href="#help" aria-label="Допомога">?</a>
+        </header>
+
+        <div class="map" role="group" aria-label="Мапа: торкніться маркера, щоб обрати транспорт">
+          <span class="chip chip--warning map__gps">GPS · демо</span>
+          <span class="map__you"></span>
+          <span class="map__park">Парк Шевченка</span>
+          <label class="marker marker--2048" data-v="2048" for="v-2048"><span aria-hidden="true">🛴</span><span class="visually-hidden">Самокат №2048</span></label>
+          <label class="marker marker--6769" data-v="6769" for="v-6769"><span aria-hidden="true">🛴</span><span class="visually-hidden">Самокат №6769</span></label>
+          <label class="marker marker--1912 marker--bike" data-v="1912" for="v-1912"><span aria-hidden="true">🚲</span><span class="visually-hidden">Електробайк №1912</span></label>
+        </div>
+
+        <div class="sheet">
+          <h3 class="sheet__title">Самокати поруч</h3>
+          <p class="sheet__subtitle">18 доступних у радіусі 1 км</p>
+
+          <div class="vehicle-list">
+            <label class="vehicle vehicle--row" data-v="2048" for="v-2048">
+              <span class="vehicle__icon" aria-hidden="true">🛴</span>
+              <span class="vehicle__info">
+                <span class="vehicle__name">Самокат №2048</span>
+                <span class="vehicle__meta">120 м · 1,20 ₴/хв</span>
+              </span>
+              <span class="vehicle__charge">82%</span>
+            </label>
+            <label class="vehicle vehicle--row" data-v="6769" for="v-6769">
+              <span class="vehicle__icon" aria-hidden="true">🛴</span>
+              <span class="vehicle__info">
+                <span class="vehicle__name">Самокат №6769</span>
+                <span class="vehicle__meta">120 м · 1,20 ₴/хв</span>
+              </span>
+              <span class="vehicle__charge">69%</span>
+            </label>
+            <label class="vehicle vehicle--row" data-v="1912" for="v-1912">
+              <span class="vehicle__icon vehicle__icon--bike" aria-hidden="true">🚲</span>
+              <span class="vehicle__info">
+                <span class="vehicle__name">Електробайк №1912</span>
+                <span class="vehicle__meta">260 м · 1,50 ₴/хв</span>
+              </span>
+              <span class="vehicle__charge">67%</span>
+            </label>
+          </div>
+
+          <a class="btn btn--primary btn--block" href="#choose">Обрати</a>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ===== НИЖНЯ НАВІГАЦІЯ ===== -->
+    <nav class="tabbar" aria-label="Основна навігація">
+      <a class="tab" href="#map"><span class="tab__icon" aria-hidden="true">🗺️</span>Мапа</a>
+      <a class="tab" href="#plans"><span class="tab__icon" aria-hidden="true">🎫</span>Абонементи</a>
+      <a class="tab" href="#history"><span class="tab__icon" aria-hidden="true">🕘</span>Історія</a>
+      <a class="tab" href="#profile"><span class="tab__icon" aria-hidden="true">👤</span>Профіль</a>
+    </nav>
+
+  </div>
+
+  <!-- ЛР4: шаблон рядка історії (клонується з JS) -->
+  <template id="trip-template">
+    <li class="trip">
+      <span class="trip__icon" aria-hidden="true">⇢</span>
+      <div class="trip__info">
+        <p class="trip__date"></p>
+        <h4 class="trip__route"></h4>
+        <p class="trip__meta"></p>
+      </div>
+      <div class="trip__price">
+        <p class="trip__sum"></p>
+        <a href="#receipt">Чек</a>
+      </div>
+    </li>
+  </template>
+
+  <!-- ЛР4: модальне вікно поповнення гаманця -->
+  <dialog class="modal" id="topup-dialog" aria-labelledby="topup-title">
+    <form class="form" id="topup-form" novalidate>
+      <div class="modal__head">
+        <h3 class="card__title" id="topup-title">Поповнення гаманця</h3>
+        <button class="icon-btn" type="button" data-action="close-topup" aria-label="Закрити">×</button>
+      </div>
+
+      <div class="quick" role="group" aria-label="Швидкий вибір суми">
+        <button class="chip-btn" type="button" data-amount="50">50 ₴</button>
+        <button class="chip-btn" type="button" data-amount="100">100 ₴</button>
+        <button class="chip-btn" type="button" data-amount="200">200 ₴</button>
+        <button class="chip-btn" type="button" data-amount="500">500 ₴</button>
+      </div>
+
+      <div class="form__field">
+        <label for="top-amount">Сума, ₴</label>
+        <input id="top-amount" name="amount" type="text" inputmode="decimal" autocomplete="off" placeholder="від 20 до 5000" aria-describedby="top-amount-err">
+        <p class="form__error" id="top-amount-err"></p>
+      </div>
+      <div class="form__field">
+        <label for="top-card">Номер картки</label>
+        <input id="top-card" name="card" type="text" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000" maxlength="19" aria-describedby="top-card-err">
+        <p class="form__error" id="top-card-err"></p>
+      </div>
+      <div class="form__pair">
+        <div class="form__field">
+          <label for="top-exp">Термін дії</label>
+          <input id="top-exp" name="exp" type="text" inputmode="numeric" autocomplete="cc-exp" placeholder="ММ/РР" maxlength="5" aria-describedby="top-exp-err">
+          <p class="form__error" id="top-exp-err"></p>
+        </div>
+        <div class="form__field">
+          <label for="top-cvv">CVV</label>
+          <input id="top-cvv" name="cvv" type="password" inputmode="numeric" autocomplete="cc-csc" placeholder="•••" maxlength="3" aria-describedby="top-cvv-err">
+          <p class="form__error" id="top-cvv-err"></p>
+        </div>
+      </div>
+
+      <p class="notice">Демо: реальної оплати немає. Для перевірки підійде тестова картка 4242 4242 4242 4242.</p>
+      <p class="form__summary" id="top-summary" role="alert" hidden></p>
+      <button class="btn btn--primary btn--block" type="submit">Поповнити</button>
+    </form>
+  </dialog>
+
+  <!-- ЛР4: спливаючі повідомлення -->
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="js/script.js" defer></script>
+</body>
+</html>
